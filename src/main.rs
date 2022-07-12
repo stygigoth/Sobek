@@ -13,6 +13,7 @@ mod advanced_block;
 mod blockstate;
 mod model;
 mod loot_table;
+mod create;
 
 static ID_REGEX: &str = r"^[0-9a-z_.\-]+$";
 
@@ -140,14 +141,17 @@ pub enum SobekMsg {
     ChangeView(Views),
     ConfirmMID,
     ChangeBID(String),
+    ChangeBIDA(String),
     ToggleBI(bool),
     ToggleDS(bool),
     ConfirmSimple,
     SelectDir,
     TabSelected(usize),
-    BlockstateSplitSize(u16),
     LootSplitSize(u16),
-    ModelSplitSize(u16)
+    ModelSplitSize(u16),
+    BlockstateTypeChange(bool),
+    VarChange(bool),
+    Create
 }
 
 impl Sandbox for Sobek {
@@ -169,9 +173,11 @@ impl Sandbox for Sobek {
     }
 
     fn update(&mut self, message: Self::Message) {
+        let mut a: i8 = 0;
         match message {
             SobekMsg::ChangeMID(s) => self.main_view.mod_id = s,
             SobekMsg::ChangeBID(s) => self.simple_view.id = s,
+            SobekMsg::ChangeBIDA(s) => self.advanced_view.blockstate_tab.b_id = s,
             SobekMsg::ToggleBI(b) => self.simple_view.has_bi = b,
             SobekMsg::ToggleDS(b) => self.simple_view.drops_self = b,
             SobekMsg::ChangeView(v) => self.current_view = v,
@@ -199,11 +205,14 @@ impl Sandbox for Sobek {
                     .unwrap().unwrap().as_os_str().to_str().unwrap());
             },
             SobekMsg::TabSelected(sel) => {
-                self.advanced_view.active_tab = sel;
+                if sel != 3 { self.advanced_view.active_tab = sel; }
+                else { drop(SobekMsg::Create); }
             },
-            SobekMsg::BlockstateSplitSize(size) => self.advanced_view.blockstate_tab.split = size,
             SobekMsg::LootSplitSize(size) => self.advanced_view.loot_tab.split = size,
             SobekMsg::ModelSplitSize(size) => self.advanced_view.model_tab.split = size,
+            SobekMsg::BlockstateTypeChange(type_of) => self.advanced_view.blockstate_tab.multipart = type_of,
+            SobekMsg::VarChange(b) => self.advanced_view.blockstate_tab.var_single = b,
+            SobekMsg::Create => a = 1
         }
     }
 

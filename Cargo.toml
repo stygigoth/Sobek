@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 iced = { version = "0.4.2", features = ["pure"] }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw", branch = "main", default-features = false, features = ["pure", "split", "tab_bar", "tabs"] }
+iced_aw = { version = "0.2", default-features = false, features = ["pure", "split", "tab_bar", "tabs"] }
 dirs = "^4.0.0"
 regex = "1"
 native-dialog = "0.6.3"

@@ -1,12 +1,13 @@
 use iced::{Length, pure::Element};
 use iced_aw::pure::Tabs;
-use crate::{SobekMsg, blockstate::BlockstateTab, model::ModelTab, loot_table::LootTab};
+use crate::{SobekMsg, blockstate::BlockstateTab, model::ModelTab, loot_table::LootTab, create::CreateTab};
 
 pub struct AdvancedBlockPage {
     pub active_tab: usize,
     pub blockstate_tab: BlockstateTab,
     pub model_tab: ModelTab,
-    pub loot_tab: LootTab
+    pub loot_tab: LootTab,
+    pub create_tab: CreateTab
 }
 
 impl AdvancedBlockPage {
@@ -15,7 +16,8 @@ impl AdvancedBlockPage {
             active_tab: 0,
             blockstate_tab: BlockstateTab::new(),
             model_tab: ModelTab::new(),
-            loot_tab: LootTab::new()
+            loot_tab: LootTab::new(),
+            create_tab: CreateTab::new()
         }
     }
 
@@ -24,6 +26,7 @@ impl AdvancedBlockPage {
         .push(self.blockstate_tab.tab_label(), self.blockstate_tab.view())
         .push(self.model_tab.tab_label(), self.model_tab.view())
         .push(self.loot_tab.tab_label(), self.loot_tab.view())
+        .push(self.create_tab.tab_label(), self.create_tab.view())
         .tab_bar_height(Length::Units(32))
         .tab_bar_position(iced_aw::TabBarPosition::Top)
         .into()
