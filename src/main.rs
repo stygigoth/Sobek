@@ -45,13 +45,26 @@ fn make_folder_structure(d: &str, s: &str) {
 }
 
 fn create_simple_block(d: &str, m: &str, s: &str, bi: &bool, ds: &bool) {
-    create_simple_blockstate(d, m, s);
-    create_simple_block_model(d, m, s);
+    match create_simple_blockstate(d, m, s) {
+        Err(y) => println!("couldn't create blockstate: {}", y),
+        Ok(_) => println!("created blockstate for: {}:{}", m, s)
+    }
+    match create_simple_block_model(d, m, s) {
+        Err(y) => println!("couldn't create block model: {}", y),
+        Ok(_) => println!("created block model for: {}:{}", m, s)
+    }
     
     if *bi {
-        create_simple_item_model(d, m, s);
+        match create_simple_item_model(d, m, s) {
+            Err(y) => println!("couldn't create item model: {}", y),
+            Ok(_) => println!("created item model for: {}:{}", m, s)
+        }
+
         if *ds {
-            create_simple_loot_table(d, m, s);
+            match create_simple_loot_table(d, m, s) {
+                Err(y) => println!("couldn't create loot table: {}", y),
+                Ok(_) => println!("created loot table for: {}:{}", m, s)
+            }
         }
     }
 }
