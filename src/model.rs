@@ -26,7 +26,7 @@ impl ModelTab {
         .width(Length::Fill).height(Length::Fill);
         let spl = Split::new(first, second, Option::from(self.split), iced_aw::pure::split::Axis::Vertical, SobekMsg::ModelSplitSize);
 
-        let import = Button::new("Import Model from BlockBench");
+        let import = Button::new("Import Model from Blockbench");
         let con = Container::new(import).center_x().center_y().width(Length::Fill);
 
         let col = Column::new().push(con).push(spl).padding(10).spacing(10);
