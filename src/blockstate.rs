@@ -28,7 +28,7 @@ impl BlockstateTab {
             SobekMsg::VarChange(false);
             col = col.push(Row::new().push(pick_type).push(Text::new(String::from("Not yet implemented"))).spacing(20))
         } else {
-            let var_single = Checkbox::new(self.var_single, "Single?", SobekMsg::VarChange);
+            let var_single = Checkbox::new(self.var_single, "Single Variant?", SobekMsg::VarChange);
             col = col.push(Row::new().push(pick_type).push(var_single).spacing(20));
 
             if self.var_single {
