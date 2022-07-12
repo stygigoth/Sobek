@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 iced = { version = "0.4", features = ["pure"] }
 dirs = "^4.0.0"
+regex = "1"

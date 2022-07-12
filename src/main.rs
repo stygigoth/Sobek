@@ -2,11 +2,14 @@ use iced::{Settings, pure::{Sandbox, Element}};
 use std::{fs, fs::File};
 use std::io::{prelude::*, Error};
 use dirs;
+use regex::Regex;
 use crate::{main_page::MainPage, block_select::BlockSelectPage, simple_block::SimpleBlockPage};
 
 mod main_page;
 mod block_select;
 mod simple_block;
+
+static id_regex: &str = r"[0-9a-z_.\-]+";
 
 fn main() -> Result<(), iced::Error> {
     let home_path = dirs::home_dir().unwrap();
@@ -171,12 +174,12 @@ impl Sandbox for Sobek {
             SobekMsg::ToggleDS(b) => self.simple_view.drops_self = b,
             SobekMsg::ChangeView(v) => self.current_view = v,
             SobekMsg::ConfirmMID => {
-                if self.main_view.mod_id != "" {make_folder_structure(&self.main_view.mod_id);}
-
-                self.current_view = if self.main_view.mod_id != "" {Views::BlockSelect} else {self.current_view}
+                if !Regex::new(&id_regex).unwrap().is_match(&self.main_view.mod_id) { return; }
+                make_folder_structure(&self.main_view.mod_id);
+                self.current_view = Views::BlockSelect
             },
             SobekMsg::ConfirmSimple => {
-                if self.simple_view.id == "" { return; }
+                if !Regex::new(&id_regex).unwrap().is_match(&self.simple_view.id) { return; }
 
                 create_simple_block(&self.main_view.mod_id, &self.simple_view.id, &self.simple_view.has_bi, &self.simple_view.drops_self);
 
