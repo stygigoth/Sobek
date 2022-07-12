@@ -151,7 +151,15 @@ pub enum SobekMsg {
     ModelSplitSize(u16),
     BlockstateTypeChange(bool),
     VarChange(bool),
-    Create
+    Create,
+    OpenAddVariant,
+    CloseAddVariant,
+    SubmitAddVariant,
+    VariantQual(String),
+    BlockstateModel(String),
+    BlockstateXrotChange(i32),
+    BlockstateYrotChange(i32),
+    BlockstateUV(bool)
 }
 
 impl Sandbox for Sobek {
@@ -160,7 +168,7 @@ impl Sandbox for Sobek {
     fn new() -> Self {
         Sobek {
             working_directory: String::from(""),
-            current_view: Views::Main,
+            current_view: Views::Advanced,
             main_view: MainPage::new(),
             block_select_view: BlockSelectPage::new(),
             simple_view: SimpleBlockPage::new(),
@@ -217,7 +225,21 @@ impl Sandbox for Sobek {
             SobekMsg::ModelSplitSize(size) => self.advanced_view.model_tab.split = size,
             SobekMsg::BlockstateTypeChange(type_of) => self.advanced_view.blockstate_tab.multipart = type_of,
             SobekMsg::VarChange(b) => self.advanced_view.blockstate_tab.var_single = b,
-            SobekMsg::Create => a = 1
+            SobekMsg::Create => a = 1,
+            SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.show_modal = true,
+            SobekMsg::CloseAddVariant => self.advanced_view.blockstate_tab.show_modal = false,
+            SobekMsg::SubmitAddVariant => {
+                if self.advanced_view.blockstate_tab.variant_qual != "" && self.advanced_view.blockstate_tab.model_id != "" {
+                    todo!();
+                }
+
+                self.advanced_view.blockstate_tab.show_modal = false
+            }
+            SobekMsg::VariantQual(s) => self.advanced_view.blockstate_tab.variant_qual = s,
+            SobekMsg::BlockstateModel(s) => self.advanced_view.blockstate_tab.model_id = s,
+            SobekMsg::BlockstateXrotChange(i) => self.advanced_view.blockstate_tab.x_rot = i,
+            SobekMsg::BlockstateYrotChange(i) => self.advanced_view.blockstate_tab.y_rot = i,
+            SobekMsg::BlockstateUV(b) => self.advanced_view.blockstate_tab.uv_lock = b,
         }
     }
 

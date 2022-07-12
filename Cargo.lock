@@ -821,6 +821,7 @@ dependencies = [
  "iced_native",
  "iced_pure",
  "iced_style",
+ "num-traits",
 ]
 
 [[package]]
