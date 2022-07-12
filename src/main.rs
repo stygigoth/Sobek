@@ -4,11 +4,15 @@ use std::io::{prelude::*, Error};
 use regex::Regex;
 use dirs;
 use native_dialog::FileDialog;
-use crate::{main_page::MainPage, block_select::BlockSelectPage, simple_block::SimpleBlockPage};
+use crate::{main_page::MainPage, block_select::BlockSelectPage, simple_block::SimpleBlockPage, advanced_block::AdvancedBlockPage};
 
 mod main_page;
 mod block_select;
 mod simple_block;
+mod advanced_block;
+mod blockstate;
+mod model;
+mod loot_table;
 
 static ID_REGEX: &str = r"^[0-9a-z_.\-]+$";
 
@@ -117,7 +121,8 @@ fn create_simple_loot_table(d: &str, m: &str, s: &str) -> Result<(), Error> {
 pub enum Views {
     Main,
     BlockSelect,
-    Simple
+    Simple,
+    Advanced
 }
 
 struct Sobek {
@@ -125,7 +130,8 @@ struct Sobek {
     current_view: Views,
     main_view: MainPage,
     block_select_view: BlockSelectPage,
-    simple_view: SimpleBlockPage
+    simple_view: SimpleBlockPage,
+    advanced_view: AdvancedBlockPage
 }
 
 #[derive(Debug, Clone)]
@@ -137,7 +143,11 @@ pub enum SobekMsg {
     ToggleBI(bool),
     ToggleDS(bool),
     ConfirmSimple,
-    SelectDir
+    SelectDir,
+    TabSelected(usize),
+    BlockstateSplitSize(u16),
+    LootSplitSize(u16),
+    ModelSplitSize(u16)
 }
 
 impl Sandbox for Sobek {
@@ -149,7 +159,8 @@ impl Sandbox for Sobek {
             current_view: Views::Main,
             main_view: MainPage::new(),
             block_select_view: BlockSelectPage::new(),
-            simple_view: SimpleBlockPage::new()
+            simple_view: SimpleBlockPage::new(),
+            advanced_view: AdvancedBlockPage::new()
         }
     }
 
@@ -186,7 +197,13 @@ impl Sandbox for Sobek {
                     .add_filter("Directory", &[""])
                     .show_open_single_dir()
                     .unwrap().unwrap().as_os_str().to_str().unwrap());
-            }
+            },
+            SobekMsg::TabSelected(sel) => {
+                self.advanced_view.active_tab = sel;
+            },
+            SobekMsg::BlockstateSplitSize(size) => self.advanced_view.blockstate_tab.split = size,
+            SobekMsg::LootSplitSize(size) => self.advanced_view.loot_tab.split = size,
+            SobekMsg::ModelSplitSize(size) => self.advanced_view.model_tab.split = size,
         }
     }
 
@@ -194,7 +211,8 @@ impl Sandbox for Sobek {
         match self.current_view {
             Views::Main => self.main_view.view(),
             Views::BlockSelect => self.block_select_view.view(),
-            Views::Simple => self.simple_view.view()
+            Views::Simple => self.simple_view.view(),
+            Views::Advanced => self.advanced_view.view()
         }
     }
 }

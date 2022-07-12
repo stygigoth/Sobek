@@ -10,7 +10,7 @@ impl BlockSelectPage {
 
     pub fn view(&self) -> Element<SobekMsg> {
         let simple = Button::new("Simple Block").on_press(SobekMsg::ChangeView(Views::Simple));
-        let advanced = Button::new("Advanced Block");
+        let advanced = Button::new("Advanced Block").on_press(SobekMsg::ChangeView(Views::Advanced));
 
         let row = Row::new().push(simple).push(advanced).spacing(20);
 

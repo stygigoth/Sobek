@@ -812,6 +812,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "iced_aw"
+version = "0.2.0"
+source = "git+https://github.com/iced-rs/iced_aw?branch=main#a82976345359bfe1b809484d8c425c678fbcb942"
+dependencies = [
+ "iced_graphics",
+ "iced_native",
+ "iced_pure",
+ "iced_style",
+]
+
+[[package]]
 name = "iced_core"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1651,6 +1662,7 @@ version = "0.1.0"
 dependencies = [
  "dirs",
  "iced",
+ "iced_aw",
  "native-dialog",
  "regex",
 ]
