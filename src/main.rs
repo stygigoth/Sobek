@@ -229,7 +229,7 @@ impl Sandbox for Sobek {
             SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.show_modal = true,
             SobekMsg::CloseAddVariant => self.advanced_view.blockstate_tab.show_modal = false,
             SobekMsg::SubmitAddVariant => {
-                if self.advanced_view.blockstate_tab.variant_qual != "" && self.advanced_view.blockstate_tab.model_id != "" {
+                if self.advanced_view.blockstate_tab.model_id != "" {
                     todo!();
                 }
 
