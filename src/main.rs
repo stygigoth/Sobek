@@ -169,7 +169,12 @@ impl Sandbox for Sobek {
     }
 
     fn title(&self) -> String {
-        String::from("Sobek")
+        match self.current_view {
+            Views::Main => String::from("Sobek"),
+            Views::BlockSelect => String::from("Sobek"),
+            Views::Advanced => String::from("Sobek - Advanced Block"),
+            Views::Simple => String::from("Sobek - Simple Block")
+        }
     }
 
     fn update(&mut self, message: Self::Message) {
