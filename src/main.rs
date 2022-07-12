@@ -9,7 +9,7 @@ mod main_page;
 mod block_select;
 mod simple_block;
 
-static id_regex: &str = r"[0-9a-z_.\-]+";
+static id_regex: &str = r"^[0-9a-z_.\-]+$";
 
 fn main() -> Result<(), iced::Error> {
     let home_path = dirs::home_dir().unwrap();
