@@ -1,5 +1,5 @@
 use iced::{Length, Padding, pure::{Element, widget::{Container, Row, Column, Button, TextInput, Checkbox}}};
-use crate::{SobekMsg, Views};
+use crate::SobekMsg;
 
 pub struct SimpleBlockPage {
     pub id: String,
