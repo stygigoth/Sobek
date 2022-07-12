@@ -33,8 +33,7 @@ impl BlockstateTab {
 
             if self.var_single {
                 let b_id = TextInput::new("Block ID", &self.b_id, SobekMsg::ChangeBIDA).padding(10);
-                let create = Button::new("Create Blockstate");
-                col = col.push(Row::new().push(b_id).push(create).spacing(20))
+                col = col.push(Row::new().push(b_id))
             } else {
                 col = col.push(Row::new().push(Text::new("Not yet implemented")))
             }
