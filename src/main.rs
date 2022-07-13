@@ -159,6 +159,7 @@ pub enum SobekMsg {
     BlockstateModel(String),
     BlockstateXrotChange(i32),
     BlockstateYrotChange(i32),
+    BlockstateWeightChange(i64),
     BlockstateUV(bool),
     RemoveLastVariant
 }
@@ -231,7 +232,7 @@ impl Sandbox for Sobek {
             SobekMsg::CloseAddVariant => self.advanced_view.blockstate_tab.show_modal = false,
             SobekMsg::SubmitAddVariant => {
                 if self.advanced_view.blockstate_tab.model_id != "" {
-                    self.advanced_view.blockstate_tab.variants.push((self.advanced_view.blockstate_tab.variant_qual.clone(), self.advanced_view.blockstate_tab.model_id.clone(), self.advanced_view.blockstate_tab.x_rot, self.advanced_view.blockstate_tab.y_rot, self.advanced_view.blockstate_tab.uv_lock))
+                    self.advanced_view.blockstate_tab.variants.push((self.advanced_view.blockstate_tab.variant_qual.clone(), self.advanced_view.blockstate_tab.model_id.clone(), self.advanced_view.blockstate_tab.x_rot, self.advanced_view.blockstate_tab.y_rot, self.advanced_view.blockstate_tab.weight, self.advanced_view.blockstate_tab.uv_lock))
                 }
 
                 self.advanced_view.blockstate_tab.show_modal = false
@@ -240,6 +241,7 @@ impl Sandbox for Sobek {
             SobekMsg::BlockstateModel(s) => self.advanced_view.blockstate_tab.model_id = s,
             SobekMsg::BlockstateXrotChange(i) => self.advanced_view.blockstate_tab.x_rot = i,
             SobekMsg::BlockstateYrotChange(i) => self.advanced_view.blockstate_tab.y_rot = i,
+            SobekMsg::BlockstateWeightChange(i) => self.advanced_view.blockstate_tab.weight = i,
             SobekMsg::BlockstateUV(b) => self.advanced_view.blockstate_tab.uv_lock = b,
             SobekMsg::RemoveLastVariant => drop(self.advanced_view.blockstate_tab.variants.pop())
         }

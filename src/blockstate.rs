@@ -11,8 +11,9 @@ pub struct BlockstateTab {
     pub b_id: String,
     pub x_rot: i32,
     pub y_rot: i32,
+    pub weight: i64,
     pub uv_lock: bool,
-    pub variants: Vec<(String, String, i32, i32, bool)>
+    pub variants: Vec<(String, String, i32, i32, i64, bool)>
 }
 
 impl BlockstateTab {
@@ -26,6 +27,7 @@ impl BlockstateTab {
             b_id: String::from(""),
             x_rot: 0,
             y_rot: 0,
+            weight: 1,
             uv_lock: false,
             variants: Vec::new()
         }
@@ -54,22 +56,22 @@ impl BlockstateTab {
             }
         };
         for x in self.variants.iter() {
-            col = col.push(Row::new().push(Text::new(format!("Variant: {}", x.0.clone()))).push(Text::new(format!("Model: {}", x.1.clone()))).spacing(20));
-            col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("UV Lock: {}", x.4))).spacing(20));
+            col = col.push(Row::new().push(Text::new(format!("Variant: {}", x.0.clone()))).push(Text::new(format!("Model: {}", x.1.clone()))).push(Text::new(format!("UV Lock: {}", x.5.clone()))).spacing(20));
+            col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("Weight: {}", x.4))).spacing(20));
         }
         let scroll = Scrollable::new(col);
 
         let content: Element<'_, SobekMsg> = Container::new(scroll)
         .center_x().center_y()
         .width(Length::Fill).height(Length::Fill)
-        .padding(200).into();
+        .padding(100).into();
 
         Modal::new(self.show_modal, content, || {
             let header = Row::new().push(Text::new("Add variant")).padding(10);
             let qualifier = Row::new().push(TextInput::new("Variant qualifier", &self.variant_qual, SobekMsg::VariantQual).padding(5)).padding(10);
             let model = Row::new().push(TextInput::new("Model ID", &self.model_id, SobekMsg::BlockstateModel).padding(5)).padding(10);
-            let rotation_labels = Row::new().push(Text::new("      X Rotation")).push(Text::new("Y Rotation")).push(Checkbox::new(self.uv_lock, "UV Lock?", SobekMsg::BlockstateUV)).spacing(65);
-            let rotations = Row::new().push(NumberInput::new(self.x_rot, i32::from(360), SobekMsg::BlockstateXrotChange).step(1).min(0)).push(NumberInput::new(self.y_rot, i32::from(360), SobekMsg::BlockstateYrotChange).step(1).min(0)).padding(10).spacing(10);
+            let rotation_labels = Row::new().push(Text::new("      X Rotation")).push(Text::new("Y Rotation")).push(Text::new("Weight")).spacing(70);
+            let rotations = Row::new().push(NumberInput::new(self.x_rot, i32::from(360), SobekMsg::BlockstateXrotChange).step(1).min(0)).push(NumberInput::new(self.y_rot, i32::from(360), SobekMsg::BlockstateYrotChange).step(1).min(0)).push(NumberInput::new(self.weight, 10000000000000000, SobekMsg::BlockstateWeightChange).step(1).min(1)).push(Checkbox::new(self.uv_lock, "UV Lock?", SobekMsg::BlockstateUV)).padding(10).spacing(15);
             let col1 = Column::new().push(qualifier).push(model).push(rotation_labels).push(rotations).spacing(5);
             Card::new(
                 header,
@@ -84,7 +86,7 @@ impl BlockstateTab {
                         Button::new(Text::new("Ok").horizontal_alignment(Horizontal::Center))
                             .width(Length::Fill).on_press(SobekMsg::SubmitAddVariant)   
                     )
-            ).max_width(500).into()
+            ).max_width(750).into()
         }).backdrop(SobekMsg::CloseAddVariant).on_esc(SobekMsg::CloseAddVariant).into()
     }
 }
