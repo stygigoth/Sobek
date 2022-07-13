@@ -12,7 +12,7 @@ pub struct BlockstateTab {
     pub x_rot: i32,
     pub y_rot: i32,
     pub uv_lock: bool,
-    pub variants: Vec<(String, String)>
+    pub variants: Vec<(String, String, i32, i32, bool)>
 }
 
 impl BlockstateTab {
@@ -43,7 +43,8 @@ impl BlockstateTab {
             col = col.push(Row::new().push(pick_type).push(Text::new(String::from("Not yet implemented"))).spacing(20))
         } else {
             let add_variant = Button::new("Add variant").on_press(SobekMsg::OpenAddVariant);
-            col = col.push(Row::new().push(pick_type).push(add_variant).spacing(20));
+            let remove_variant = Button::new("Remove last variant").on_press(SobekMsg::RemoveLastVariant);
+            col = col.push(Row::new().push(pick_type).push(add_variant).push(remove_variant).spacing(20));
 
             if self.var_single {
                 let b_id = TextInput::new("Block ID", &self.b_id, SobekMsg::ChangeBIDA).padding(10);
@@ -52,6 +53,10 @@ impl BlockstateTab {
                 col = col.push(Row::new().push(Text::new("Not yet implemented")))
             }
         };
+        for x in self.variants.iter() {
+            col = col.push(Row::new().push(Text::new(format!("Variant: {}", x.0.clone()))).push(Text::new(format!("Model: {}", x.1.clone()))).spacing(20));
+            col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("UV Lock: {}", x.4))).spacing(20));
+        }
         let scroll = Scrollable::new(col);
 
         let content: Element<'_, SobekMsg> = Container::new(scroll)
