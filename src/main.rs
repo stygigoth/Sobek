@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use iced::{Settings, pure::{Sandbox, Element}};
 use std::{fs, fs::File};
 use std::io::{prelude::*, Error};
