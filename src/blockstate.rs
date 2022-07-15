@@ -66,7 +66,7 @@ impl BlockstateTab {
             let qualifier = Row::new().push(TextInput::new("Variant qualifier", &self.variant_qual, SobekMsg::VariantQual).padding(5)).padding(10);
             let model = Row::new().push(TextInput::new("Model ID", &self.model_id, SobekMsg::BlockstateModel).padding(5)).padding(10);
             let rotation_labels = Row::new().push(Text::new("      X Rotation")).push(Text::new("Y Rotation")).push(Text::new("Weight")).spacing(70);
-            let rotations = Row::new().push(NumberInput::new(self.x_rot, i32::from(360), SobekMsg::BlockstateXrotChange).step(1).min(0)).push(NumberInput::new(self.y_rot, i32::from(360), SobekMsg::BlockstateYrotChange).step(1).min(0)).push(NumberInput::new(self.weight, 10000000000000000, SobekMsg::BlockstateWeightChange).step(1).min(1)).push(Checkbox::new(self.uv_lock, "UV Lock?", SobekMsg::BlockstateUV)).padding(10).spacing(15);
+            let rotations = Row::new().push(NumberInput::new(self.x_rot, i32::from(360), SobekMsg::BlockstateXrotChange).step(90).min(0)).push(NumberInput::new(self.y_rot, i32::from(360), SobekMsg::BlockstateYrotChange).step(90).min(0)).push(NumberInput::new(self.weight, 10000000000000000, SobekMsg::BlockstateWeightChange).step(1).min(1)).push(Checkbox::new(self.uv_lock, "UV Lock?", SobekMsg::BlockstateUV)).padding(10).spacing(15);
             let col1 = Column::new().push(qualifier).push(model).push(rotation_labels).push(rotations).spacing(5);
             Card::new(
                 header,

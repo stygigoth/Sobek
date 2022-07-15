@@ -104,7 +104,7 @@ fn create_blockstate_str(v: &Vec<(String, String, i32, i32, i64, bool)>) -> Stri
             v0.push(x.0.clone());
         }
     }
-    
+
     for x in v0.iter() {
         let mut temp: Vec<(String, i32, i32, i64, bool)> = Vec::new();
         for y in v.iter() {
@@ -115,9 +115,30 @@ fn create_blockstate_str(v: &Vec<(String, String, i32, i32, i64, bool)>) -> Stri
         }
         v1.push((x.clone(), (temp)));
     }
-    println!("{:?}", v1);
 
-    format!("{{\n\t {:?} \n}}", v1)
+    let mut to_ret: String = String::from("{\n\t\"variants\": {\n\t\t");
+    for x in v1.iter() {
+        to_ret += &format!("\"{}\": ", x.0.clone());
+        if x.1.len() == 1 {
+            let temp = x.1.get(0).unwrap();
+            to_ret += &format!("{{\n\t\t\t\"model\": \"{}\",\n\t\t\t\"x\": {},\n\t\t\t\"y\": {},\n\t\t\t\"uvlock\": {}\n\t\t}}\n\t}}\n}}", temp.0.clone(), temp.1, temp.2, temp.4);
+        } else {
+            to_ret += "[\n";
+            let mut index: usize = 1;
+            for y in x.1.iter() {
+                to_ret += &format!("\t\t\t{{\n\t\t\t\t\"model\": \"{}\",\n\t\t\t\t\"x\": {},\n\t\t\t\t\"y\": {},\n\t\t\t\t\"weight\": {},\n\t\t\t\t\"uvlock\": {}\n\t\t\t}}", y.0.clone(), y.1, y.2, y.3, y.4);
+                if index != x.1.len() {
+                    to_ret += ",\n";
+                    index+=1;
+                } else {
+                    to_ret += "\n";
+                    index = 1;
+                }
+            }
+            to_ret += "\t\t]\n\t}\n}";
+        }
+    }
+    format!("{}", to_ret)
 }
 
 fn create_simple_block_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
@@ -261,14 +282,20 @@ impl Sandbox for Sobek {
             SobekMsg::BlockstateTypeChange(type_of) => self.advanced_view.blockstate_tab.multipart = type_of,
             SobekMsg::Create => {
                 if self.advanced_view.create_tab.block_id == "" { return; }
-
-                if self.advanced_view.blockstate_tab.variants.is_empty() {
-                    match create_simple_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id) {
-                        Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
-                        Ok(_) => println!("created blockstate for: {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
+                if !self.advanced_view.blockstate_tab.multipart {
+                    if self.advanced_view.blockstate_tab.variants.is_empty() {
+                        match create_simple_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id) {
+                            Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
+                            Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
+                        }
+                    } else {
+                        match create_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id, &self.advanced_view.blockstate_tab.variants) {
+                            Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
+                            Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
+                        }
                     }
                 } else {
-                    create_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id, &self.advanced_view.blockstate_tab.variants);
+
                 }
             },
             SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.show_modal = true,
