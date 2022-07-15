@@ -5,7 +5,7 @@ use crate::SobekMsg;
 pub struct BlockstateTab {
     pub show_modal: bool,
     pub multipart: bool,
-    pub var_single: bool,
+    pub var: bool,
     pub variant_qual: String,
     pub model_id: String,
     pub x_rot: i32,
@@ -20,7 +20,7 @@ impl BlockstateTab {
         BlockstateTab {
             show_modal: false,
             multipart: false,
-            var_single: true,
+            var: true,
             variant_qual: String::from(""),
             model_id: String::from(""),
             x_rot: 0,
@@ -42,18 +42,23 @@ impl BlockstateTab {
             SobekMsg::VarChange(false);
             col = col.push(Row::new().push(pick_type).push(Text::new(String::from("Not yet implemented"))).spacing(20))
         } else {
+            SobekMsg::VarChange(true);
             let add_variant = Button::new("Add variant").on_press(SobekMsg::OpenAddVariant);
-            let remove_variant = Button::new("Remove last variant").on_press(SobekMsg::RemoveLastVariant);
-            col = col.push(Row::new().push(pick_type).push(add_variant).push(remove_variant).spacing(20));
+            let clear_variants = Button::new("Clear variants").on_press(SobekMsg::ClearVariants);
+            col = col.push(Row::new().push(pick_type).push(add_variant).push(clear_variants).spacing(20));
 
-            if !self.var_single {
+            if !self.var {
                 col = col.push(Row::new().push(Text::new("Not yet implemented")))
+            } else {
+                let mut i: usize = 0;
+                for x in self.variants.iter() {
+                    col = col.push(Row::new().push(Text::new(format!("Variant: \"{}\"", x.0.clone()))).push(Text::new(format!("Model: {}", x.1.clone()))).push(Text::new(format!("UV Lock: {}", x.5.clone()))).push(Button::new("Remove").on_press(SobekMsg::RemoveVariant(i))).spacing(20));
+                    col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("Weight: {}", x.4))).spacing(20));
+                    i += 1;
+                }
             }
         };
-        for x in self.variants.iter() {
-            col = col.push(Row::new().push(Text::new(format!("Variant: \"{}\"", x.0.clone()))).push(Text::new(format!("Model: {}", x.1.clone()))).push(Text::new(format!("UV Lock: {}", x.5.clone()))).spacing(20));
-            col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("Weight: {}", x.4))).spacing(20));
-        }
+        
         let scroll = Scrollable::new(col);
 
         let content: Element<'_, SobekMsg> = Container::new(scroll)

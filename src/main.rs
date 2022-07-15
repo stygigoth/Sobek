@@ -219,7 +219,8 @@ pub enum SobekMsg {
     BlockstateYrotChange(i32),
     BlockstateWeightChange(i64),
     BlockstateUV(bool),
-    RemoveLastVariant
+    RemoveVariant(usize),
+    ClearVariants
 }
 
 impl Sandbox for Sobek {
@@ -315,8 +316,9 @@ impl Sandbox for Sobek {
             SobekMsg::BlockstateYrotChange(i) => self.advanced_view.blockstate_tab.y_rot = i,
             SobekMsg::BlockstateWeightChange(i) => self.advanced_view.blockstate_tab.weight = i,
             SobekMsg::BlockstateUV(b) => self.advanced_view.blockstate_tab.uv_lock = b,
-            SobekMsg::RemoveLastVariant => drop(self.advanced_view.blockstate_tab.variants.pop()),
-            SobekMsg::VarChange(b) => self.advanced_view.blockstate_tab.var_single = b
+            SobekMsg::RemoveVariant(z) => drop(self.advanced_view.blockstate_tab.variants.remove(z)),
+            SobekMsg::VarChange(b) => self.advanced_view.blockstate_tab.var = b,
+            SobekMsg::ClearVariants => self.advanced_view.blockstate_tab.variants.clear()
         }
     }
 
