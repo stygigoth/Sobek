@@ -76,7 +76,7 @@ fn create_simple_block(d: &str, m: &str, s: &str, bi: &bool, ds: &bool) {
 
 fn create_simple_blockstate(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("assets/{}/blockstates/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"variants\": {{\n\t\t\"\": {{\n\t\t\t\"model\": \"{}:block/{}\"\n\t\t}}\n\t}}\n}}", m, s);
@@ -84,10 +84,45 @@ fn create_simple_blockstate(d: &str, m: &str, s: &str) -> Result<(), Error> {
     file.write_all(to_write.as_bytes())?;
     Ok(())
 }
+fn create_blockstate(d: &str, m: &str, s: &str, v: &Vec<(String, String, i32, i32, i64, bool)>) -> Result<(), Error> {
+    let m_id = format!("assets/{}/blockstates/", m);
+    let path = format!("{}/{}", d, m_id);
+
+    let mut file = File::create(format!("{}{}.json", path, s))?;
+    let to_write = create_blockstate_str(v);
+
+    file.write_all(to_write.as_bytes())?;
+    Ok(())
+}
+
+fn create_blockstate_str(v: &Vec<(String, String, i32, i32, i64, bool)>) -> String {
+    let mut v0: Vec<String> = Vec::new();
+    let mut v1: Vec<(String, Vec<(String, i32, i32, i64, bool)>)> = Vec::new();
+
+    for x in v.iter() {
+        if !v0.contains(&x.0) {
+            v0.push(x.0.clone());
+        }
+    }
+    
+    for x in v0.iter() {
+        let mut temp: Vec<(String, i32, i32, i64, bool)> = Vec::new();
+        for y in v.iter() {
+            if *x != y.0.clone() {
+                continue;
+            }
+            temp.push((y.1.clone(), y.2, y.3, y.4, y.5))
+        }
+        v1.push((x.clone(), (temp)));
+    }
+    println!("{:?}", v1);
+
+    format!("{{\n\t {:?} \n}}", v1)
+}
 
 fn create_simple_block_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("assets/{}/models/block/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"parent\": \"minecraft:block/cube_all\",\n\t\"textures\": {{\n\t\t\"all\": \"{}:block/{}\"\n\t}}\n}}", m, s);
@@ -98,7 +133,7 @@ fn create_simple_block_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
 
 fn create_simple_item_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("assets/{}/models/item/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"parent\": \"{}:block/{}\"\n}}", m, s);
@@ -109,7 +144,7 @@ fn create_simple_item_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
 
 fn create_simple_loot_table(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("data/{}/loot_tables/block/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"type\": \"minecraft:block\",\n\t\"pools\": [\n\t\t{{\n\t\t\t\"bonus_rolls\": 0.0,\n\t\t\t\"conditions\": [\n\t\t\t\t{{\n\t\t\t\t\t\"condition\": \"minecraft:survives_explosion\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"entries\": [\n\t\t\t\t{{\n\t\t\t\t\t\"type\": \"minecraft:item\",\n\t\t\t\t\t\"name\": \"{}:{}\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"rolls\": 1.0\n\t\t}}\n\t]\n}}", m, s);
@@ -141,7 +176,7 @@ pub enum SobekMsg {
     ChangeView(Views),
     ConfirmMID,
     ChangeBID(String),
-    ChangeBIDA(String),
+    ChangeAdvBID(String),
     ToggleBI(bool),
     ToggleDS(bool),
     ConfirmSimple,
@@ -150,12 +185,12 @@ pub enum SobekMsg {
     LootSplitSize(u16),
     ModelSplitSize(u16),
     BlockstateTypeChange(bool),
-    VarChange(bool),
     Create,
     OpenAddVariant,
     CloseAddVariant,
     SubmitAddVariant,
     VariantQual(String),
+    VarChange(bool),
     BlockstateModel(String),
     BlockstateXrotChange(i32),
     BlockstateYrotChange(i32),
@@ -170,7 +205,7 @@ impl Sandbox for Sobek {
     fn new() -> Self {
         Sobek {
             working_directory: String::from(""),
-            current_view: Views::Advanced,
+            current_view: Views::Main,
             main_view: MainPage::new(),
             block_select_view: BlockSelectPage::new(),
             simple_view: SimpleBlockPage::new(),
@@ -188,11 +223,10 @@ impl Sandbox for Sobek {
     }
 
     fn update(&mut self, message: Self::Message) {
-        let mut a: i8 = 0;
         match message {
             SobekMsg::ChangeMID(s) => self.main_view.mod_id = s,
             SobekMsg::ChangeBID(s) => self.simple_view.id = s,
-            SobekMsg::ChangeBIDA(s) => self.advanced_view.blockstate_tab.b_id = s,
+            SobekMsg::ChangeAdvBID(s) => self.advanced_view.create_tab.block_id = s,
             SobekMsg::ToggleBI(b) => self.simple_view.has_bi = b,
             SobekMsg::ToggleDS(b) => self.simple_view.drops_self = b,
             SobekMsg::ChangeView(v) => self.current_view = v,
@@ -220,14 +254,23 @@ impl Sandbox for Sobek {
                     .unwrap().unwrap().as_os_str().to_str().unwrap());
             },
             SobekMsg::TabSelected(sel) => {
-                if sel != 3 { self.advanced_view.active_tab = sel; }
-                else { drop(SobekMsg::Create); }
+                self.advanced_view.active_tab = sel;
             },
             SobekMsg::LootSplitSize(size) => self.advanced_view.loot_tab.split = size,
             SobekMsg::ModelSplitSize(size) => self.advanced_view.model_tab.split = size,
             SobekMsg::BlockstateTypeChange(type_of) => self.advanced_view.blockstate_tab.multipart = type_of,
-            SobekMsg::VarChange(b) => self.advanced_view.blockstate_tab.var_single = b,
-            SobekMsg::Create => a = 1,
+            SobekMsg::Create => {
+                if self.advanced_view.create_tab.block_id == "" { return; }
+
+                if self.advanced_view.blockstate_tab.variants.is_empty() {
+                    match create_simple_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id) {
+                        Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
+                        Ok(_) => println!("created blockstate for: {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
+                    }
+                } else {
+                    create_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id, &self.advanced_view.blockstate_tab.variants);
+                }
+            },
             SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.show_modal = true,
             SobekMsg::CloseAddVariant => self.advanced_view.blockstate_tab.show_modal = false,
             SobekMsg::SubmitAddVariant => {
@@ -243,7 +286,8 @@ impl Sandbox for Sobek {
             SobekMsg::BlockstateYrotChange(i) => self.advanced_view.blockstate_tab.y_rot = i,
             SobekMsg::BlockstateWeightChange(i) => self.advanced_view.blockstate_tab.weight = i,
             SobekMsg::BlockstateUV(b) => self.advanced_view.blockstate_tab.uv_lock = b,
-            SobekMsg::RemoveLastVariant => drop(self.advanced_view.blockstate_tab.variants.pop())
+            SobekMsg::RemoveLastVariant => drop(self.advanced_view.blockstate_tab.variants.pop()),
+            SobekMsg::VarChange(b) => self.advanced_view.blockstate_tab.var_single = b
         }
     }
 
