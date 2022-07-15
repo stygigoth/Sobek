@@ -1,4 +1,4 @@
-use iced::{Length, alignment::Horizontal, pure::{Element, widget::{Container, Text, Checkbox, Scrollable, Column, Row, TextInput, Button}}};
+use iced::{Length, alignment::Horizontal, Alignment, pure::{Element, widget::{Container, Text, Checkbox, Scrollable, Column, Row, TextInput, Button}}};
 use iced_aw::{TabLabel, pure::{Modal, Card, NumberInput}};
 use crate::SobekMsg;
 
@@ -45,15 +45,15 @@ impl BlockstateTab {
             SobekMsg::VarChange(true);
             let add_variant = Button::new("Add variant").on_press(SobekMsg::OpenAddVariant);
             let clear_variants = Button::new("Clear variants").on_press(SobekMsg::ClearVariants);
-            col = col.push(Row::new().push(pick_type).push(add_variant).push(clear_variants).spacing(20));
+            col = col.push(Row::new().push(pick_type).push(add_variant).push(clear_variants).spacing(20).align_items(Alignment::Center));
 
             if !self.var {
                 col = col.push(Row::new().push(Text::new("Not yet implemented")))
             } else {
                 let mut i: usize = 0;
                 for x in self.variants.iter() {
-                    col = col.push(Row::new().push(Text::new(format!("Variant: \"{}\"", x.0.clone()))).push(Text::new(format!("Model: {}", x.1.clone()))).push(Text::new(format!("UV Lock: {}", x.5.clone()))).push(Button::new("Remove").on_press(SobekMsg::RemoveVariant(i))).spacing(20));
-                    col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("Weight: {}", x.4))).spacing(20));
+                    col = col.push(Row::new().push(Text::new(format!("Variant: \"{}\"", x.0.clone()))).push(Text::new(format!("Model: {}", x.1.clone()))).push(Text::new(format!("UV Lock: {}", x.5.clone()))).push(Button::new("Remove").on_press(SobekMsg::RemoveVariant(i))).spacing(20).align_items(Alignment::Center));
+                    col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("Weight: {}", x.4))).spacing(20).align_items(Alignment::Center));
                     i += 1;
                 }
             }
@@ -70,9 +70,12 @@ impl BlockstateTab {
             let header = Row::new().push(Text::new("Add variant")).padding(10);
             let qualifier = Row::new().push(TextInput::new("Variant qualifier", &self.variant_qual, SobekMsg::VariantQual).padding(5)).padding(10);
             let model = Row::new().push(TextInput::new("Model ID", &self.model_id, SobekMsg::BlockstateModel).padding(5)).padding(10);
-            let rotation_labels = Row::new().push(Text::new("      X Rotation")).push(Text::new("Y Rotation")).push(Text::new("Weight")).spacing(70);
-            let rotations = Row::new().push(NumberInput::new(self.x_rot, i32::from(360), SobekMsg::BlockstateXrotChange).step(90).min(0)).push(NumberInput::new(self.y_rot, i32::from(360), SobekMsg::BlockstateYrotChange).step(90).min(0)).push(NumberInput::new(self.weight, 10000000000000000, SobekMsg::BlockstateWeightChange).step(1).min(1)).push(Checkbox::new(self.uv_lock, "UV Lock?", SobekMsg::BlockstateUV)).padding(10).spacing(15);
-            let col1 = Column::new().push(qualifier).push(model).push(rotation_labels).push(rotations).spacing(5);
+            let rotations = Row::new()
+            .push(Column::new().push(Text::new("X Rotation")).push(NumberInput::new(self.x_rot, i32::from(360), SobekMsg::BlockstateXrotChange).step(90).min(0)).padding(10).spacing(10).align_items(Alignment::Center))
+            .push(Column::new().push(Text::new("Y Rotation")).push(NumberInput::new(self.y_rot, i32::from(360), SobekMsg::BlockstateYrotChange).step(90).min(0)).padding(10).spacing(10).align_items(Alignment::Center))
+            .push(Column::new().push(Text::new("Weight")).push(NumberInput::new(self.weight, 10000000000000000, SobekMsg::BlockstateWeightChange).step(1).min(1)).padding(10).spacing(10).align_items(Alignment::Center))
+            .push(Checkbox::new(self.uv_lock, "UV Lock?", SobekMsg::BlockstateUV)).align_items(Alignment::Center).padding(10).spacing(15);
+            let col1 = Column::new().push(qualifier).push(model).push(rotations).spacing(5);
             Card::new(
                 header,
                 col1

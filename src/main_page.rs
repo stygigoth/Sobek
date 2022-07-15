@@ -1,4 +1,4 @@
-use iced::{Length, Padding, pure::{Element, widget::{Container, Column, Row, Button, TextInput}}};
+use iced::{Length, Padding, Alignment, pure::{Element, widget::{Container, Column, Row, Button, TextInput}}};
 use crate::SobekMsg;
 
 pub struct MainPage {
@@ -17,7 +17,7 @@ impl MainPage {
         let file_dialog = Button::new("Select Resources Directory").on_press(SobekMsg::SelectDir);
         let conf = Button::new("Confirm").on_press(SobekMsg::ConfirmMID);
         
-        let row = Row::new().push(file_dialog).push(conf).spacing(20);
+        let row = Row::new().push(file_dialog).push(conf).spacing(20).align_items(Alignment::Center);
         let col = Column::new().push(input).push(row).spacing(10);
 
         Container::new(col)

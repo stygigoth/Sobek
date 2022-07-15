@@ -1,4 +1,4 @@
-use iced::{Length, Padding, pure::{Element, widget::{Container, Row, Column, Button, TextInput, Checkbox}}};
+use iced::{Length, Padding, Alignment, pure::{Element, widget::{Container, Row, Column, Button, TextInput, Checkbox}}};
 use crate::SobekMsg;
 
 pub struct SimpleBlockPage {
@@ -23,7 +23,7 @@ impl SimpleBlockPage {
         let drops_self = Checkbox::new(self.drops_self, "Drops Self?", SobekMsg::ToggleDS);
         let create = Button::new("Create").on_press(SobekMsg::ConfirmSimple);
 
-        let row = Row::new().push(has_bi).push(drops_self).push(create).spacing(20);
+        let row = Row::new().push(has_bi).push(drops_self).push(create).spacing(20).align_items(Alignment::Center);
         let col = Column::new().push(input).push(row).spacing(10);
         Container::new(col)
             .center_x().center_y()
