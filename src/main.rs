@@ -58,7 +58,7 @@ fn create_simple_block(d: &str, m: &str, s: &str, bi: &bool, ds: &bool) {
 
 fn create_simple_blockstate(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("assets/{}/blockstates/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"variants\": {{\n\t\t\"\": {{\n\t\t\t\"model\": \"{}:block/{}\"\n\t\t}}\n\t}}\n}}", m, s);
@@ -69,7 +69,7 @@ fn create_simple_blockstate(d: &str, m: &str, s: &str) -> Result<(), Error> {
 
 fn create_simple_block_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("assets/{}/models/block/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"parent\": \"minecraft:block/cube_all\",\n\t\"textures\": {{\n\t\t\"all\": \"{}:block/{}\"\n\t}}\n}}", m, s);
@@ -80,7 +80,7 @@ fn create_simple_block_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
 
 fn create_simple_item_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("assets/{}/models/item/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"parent\": \"{}:block/{}\"\n}}", m, s);
@@ -91,7 +91,7 @@ fn create_simple_item_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
 
 fn create_simple_loot_table(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("data/{}/loot_tables/block/", m);
-    let path = format!("{}{}", d, m_id);
+    let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
     let to_write = format!("{{\n\t\"type\": \"minecraft:block\",\n\t\"pools\": [\n\t\t{{\n\t\t\t\"bonus_rolls\": 0.0,\n\t\t\t\"conditions\": [\n\t\t\t\t{{\n\t\t\t\t\t\"condition\": \"minecraft:survives_explosion\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"entries\": [\n\t\t\t\t{{\n\t\t\t\t\t\"type\": \"minecraft:item\",\n\t\t\t\t\t\"name\": \"{}:{}\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"rolls\": 1.0\n\t\t}}\n\t]\n}}", m, s);
