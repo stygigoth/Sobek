@@ -216,7 +216,6 @@ pub enum SobekMsg {
     CloseAddVariant,
     SubmitAddVariant,
     VariantQual(String),
-    MPVariantQual(String),
     BlockstateModel(String),
     MPBlockstateModel(String),
     BlockstateXrotChange(i32),
@@ -334,7 +333,6 @@ impl Sandbox for Sobek {
                 self.advanced_view.blockstate_tab.variant_view.show_modal = false
             }
             SobekMsg::VariantQual(s) => self.advanced_view.blockstate_tab.variant_view.variant_qual = s,
-            SobekMsg::MPVariantQual(s) => self.advanced_view.blockstate_tab.multipart_view.variant_qual = s,
             SobekMsg::BlockstateModel(s) => self.advanced_view.blockstate_tab.variant_view.model_id = s,
             SobekMsg::MPBlockstateModel(s) => self.advanced_view.blockstate_tab.multipart_view.model_id = s,
             SobekMsg::BlockstateXrotChange(i) => self.advanced_view.blockstate_tab.variant_view.x_rot = i,
@@ -366,7 +364,7 @@ impl Sandbox for Sobek {
             },
             SobekMsg::MPSubmitAddVariant => {
                 if self.advanced_view.blockstate_tab.multipart_view.model_id != "" {
-                    self.advanced_view.blockstate_tab.multipart_view.variants.push((self.advanced_view.blockstate_tab.multipart_view.variant_qual.clone(), self.advanced_view.blockstate_tab.multipart_view.model_id.clone(), self.advanced_view.blockstate_tab.multipart_view.x_rot, self.advanced_view.blockstate_tab.multipart_view.y_rot, self.advanced_view.blockstate_tab.multipart_view.weight, self.advanced_view.blockstate_tab.multipart_view.uv_lock))
+                    self.advanced_view.blockstate_tab.multipart_view.variants.push((self.advanced_view.blockstate_tab.multipart_view.model_id.clone(), self.advanced_view.blockstate_tab.multipart_view.x_rot, self.advanced_view.blockstate_tab.multipart_view.y_rot, self.advanced_view.blockstate_tab.multipart_view.weight, self.advanced_view.blockstate_tab.multipart_view.uv_lock))
                 }
 
                 

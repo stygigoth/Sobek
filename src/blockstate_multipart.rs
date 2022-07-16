@@ -6,7 +6,6 @@ pub struct BlockstateMultipart {
     pub show_modal: bool,
     pub show_part_modal: bool,
     pub show_when_modal: bool,
-    pub variant_qual: String,
     pub model_id: String,
     pub x_rot: i32,
     pub y_rot: i32,
@@ -15,8 +14,8 @@ pub struct BlockstateMultipart {
     pub name: String,
     pub ifw: bool,
     pub when: Vec<(String, bool)>,
-    pub variants: Vec<(String, String, i32, i32, i64, bool)>,
-    pub parts: Vec<(Vec<(String, bool)>, Vec<(String, String, i32, i32, i64, bool)>)>
+    pub variants: Vec<(String, i32, i32, i64, bool)>,
+    pub parts: Vec<(Vec<(String, bool)>, Vec<(String, i32, i32, i64, bool)>)>
 }
 
 impl BlockstateMultipart {
@@ -25,7 +24,6 @@ impl BlockstateMultipart {
             show_modal: false,
             show_part_modal: false,
             show_when_modal: false,
-            variant_qual: String::from(""),
             model_id: String::from(""),
             x_rot: 0,
             y_rot: 0,
@@ -65,9 +63,9 @@ impl BlockstateMultipart {
             let mut col1: Column<'_, SobekMsg> = Column::new().push(Text::new("Variants:")).spacing(10);
             for x in self.variants.iter() {
                 col1 = col1.push(
-                    Row::new().push(Text::new(format!("Variant: \"{}\"", x.0))).push(Text::new(format!("Model: {}", x.1))).push(Text::new(format!("UV Lock: {}", x.5))).spacing(20)
+                    Row::new().push(Text::new(format!("Model: {}", x.0))).push(Text::new(format!("UV Lock: {}", x.4))).spacing(20)
                 ).push(
-                    Row::new().push(Text::new(format!("X Rotation: {}", x.2))).push(Text::new(format!("Y Rotation: {}", x.3))).push(Text::new(format!("Weight: {}", x.4))).spacing(20)
+                    Row::new().push(Text::new(format!("X Rotation: {}", x.1))).push(Text::new(format!("Y Rotation: {}", x.2))).push(Text::new(format!("Weight: {}", x.3))).spacing(20)
                 )
             }
             let mut col2: Column<'_, SobekMsg> = Column::new().push(Text::new("Conditions:")).spacing(10);
@@ -79,7 +77,7 @@ impl BlockstateMultipart {
             
             let scrollable = Scrollable::new(col1);
             let scrollable_1 = Scrollable::new(col2);
-            let row = Row::new().push(scrollable).push(scrollable_1).spacing(20).height(Length::Units(180));
+            let row = Row::new().push(scrollable).push(scrollable_1).spacing(20).align_items(Alignment::Fill).height(Length::Units(180));
 
             let body = Column::new().push(buttons).push(row).align_items(Alignment::Center).spacing(10);
             Card::new(header, body)
@@ -98,14 +96,13 @@ impl BlockstateMultipart {
 
         let outer: Element<'_, SobekMsg> = Modal::new(self.show_modal, inner, || {
             let header = Row::new().push(Text::new("Add variant")).padding(10);
-            let qualifier = Row::new().push(TextInput::new("Variant qualifier", &self.variant_qual, SobekMsg::MPVariantQual).padding(5)).padding(10);
             let model = Row::new().push(TextInput::new("Model ID", &self.model_id, SobekMsg::MPBlockstateModel).padding(5)).padding(10);
             let rotations = Row::new()
             .push(Column::new().push(Text::new("X Rotation")).push(NumberInput::new(self.x_rot, i32::from(360), SobekMsg::MPBlockstateXrotChange).step(90).min(0)).padding(10).spacing(10).align_items(Alignment::Center))
             .push(Column::new().push(Text::new("Y Rotation")).push(NumberInput::new(self.y_rot, i32::from(360), SobekMsg::MPBlockstateYrotChange).step(90).min(0)).padding(10).spacing(10).align_items(Alignment::Center))
             .push(Column::new().push(Text::new("Weight")).push(NumberInput::new(self.weight, 10000000000000000, SobekMsg::MPBlockstateWeightChange).step(1).min(1)).padding(10).spacing(10).align_items(Alignment::Center))
             .push(Checkbox::new(self.uv_lock, "UV Lock?", SobekMsg::MPBlockstateUV)).align_items(Alignment::Center).padding(10).spacing(15);
-            let col1 = Column::new().push(qualifier).push(model).push(rotations).spacing(5);
+            let col1 = Column::new().push(model).push(rotations).spacing(5);
             Card::new(
                 header,
                 col1
@@ -127,7 +124,7 @@ impl BlockstateMultipart {
 
             let name = TextInput::new("Condition name", &self.name, SobekMsg::MPWhenName).padding(10);
             let tf = Checkbox::new(self.ifw, "True", SobekMsg::ConditionChange);
-            let body = Row::new().push(name).push(tf).spacing(20);
+            let body = Row::new().push(name).push(tf).spacing(20).align_items(Alignment::Center);
 
             Card::new(header, body)
             .foot(Row::new().spacing(10).padding(5).width(Length::Fill)
