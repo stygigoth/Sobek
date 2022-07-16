@@ -43,7 +43,18 @@ impl BlockstateMultipart {
         let add_part = Button::new("Add part").on_press(SobekMsg::OpenAddPart);
         col = col.push(Row::new().push(pick_type).push(add_part).spacing(20).align_items(Alignment::Center));
         
-        // TODO: display parts of blockstate
+        for x in self.parts.iter() {
+            col = col.push(Row::new().push(Text::new("________________________________").horizontal_alignment(Horizontal::Center)));
+
+            for y in x.1.iter() {
+                col = col.push(Row::new().push(Text::new(format!("Model: {}", y.0)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Weight: {}", y.3)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("UV Lock: {}", y.4)).horizontal_alignment(Horizontal::Center)).spacing(20));
+                col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", y.1)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Y Rotation: {}", y.2)).horizontal_alignment(Horizontal::Center)).spacing(20));
+            }
+            col = col.push(Row::new().push(Text::new("-----------------------------------").horizontal_alignment(Horizontal::Center)));
+            for y in x.0.iter() {
+                col = col.push(Row::new().push(Text::new(format!("{}: {}", y.0, y.1))));
+            }
+        }
 
         let scroll = Scrollable::new(col);
 
