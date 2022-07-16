@@ -6,7 +6,7 @@ use std::io::{prelude::*, Error};
 use regex::Regex;
 use dirs;
 use native_dialog::FileDialog;
-use crate::{main_page::MainPage, block_select::BlockSelectPage, simple_block::SimpleBlockPage, advanced_block::AdvancedBlockPage};
+use crate::{main_page::MainPage, block_select::BlockSelectPage, simple_block::SimpleBlockPage, advanced_block::AdvancedBlockPage, blockstate::BlockstateViews};
 
 mod main_page;
 mod block_select;
@@ -16,6 +16,8 @@ mod blockstate;
 mod model;
 mod loot_table;
 mod create;
+mod blockstate_variant;
+mod blockstate_multipart;
 
 static ID_REGEX: &str = r"^[0-9a-z_.\-]+$";
 
@@ -210,17 +212,34 @@ pub enum SobekMsg {
     BlockstateTypeChange(bool),
     Create,
     OpenAddVariant,
+    MPOpenAddVariant,
     CloseAddVariant,
     SubmitAddVariant,
     VariantQual(String),
-    VarChange(bool),
+    MPVariantQual(String),
     BlockstateModel(String),
+    MPBlockstateModel(String),
     BlockstateXrotChange(i32),
+    MPBlockstateXrotChange(i32),
     BlockstateYrotChange(i32),
+    MPBlockstateYrotChange(i32),
     BlockstateWeightChange(i64),
+    MPBlockstateWeightChange(i64),
     BlockstateUV(bool),
+    MPBlockstateUV(bool),
     RemoveVariant(usize),
-    ClearVariants
+    ClearVariants,
+    MPClearVariants,
+    OpenAddPart,
+    CloseAddPart,
+    SubmitAddPart,
+    MPCloseAddVariant,
+    MPSubmitAddVariant,
+    AddCondition,
+    ClearConditions,
+    MPWhenName(String),
+    ConditionChange(bool),
+    MPSubmitAddCondition
 }
 
 impl Sandbox for Sobek {
@@ -282,43 +301,90 @@ impl Sandbox for Sobek {
             },
             SobekMsg::LootSplitSize(size) => self.advanced_view.loot_tab.split = size,
             SobekMsg::ModelSplitSize(size) => self.advanced_view.model_tab.split = size,
-            SobekMsg::BlockstateTypeChange(type_of) => self.advanced_view.blockstate_tab.multipart = type_of,
+            SobekMsg::BlockstateTypeChange(type_of) => {
+                self.advanced_view.blockstate_tab.multipart = type_of;
+                self.advanced_view.blockstate_tab.view = if type_of { BlockstateViews::Multipart } else { BlockstateViews::Variant };
+            },
             SobekMsg::Create => {
                 if self.advanced_view.create_tab.block_id == "" { return; }
                 if !self.advanced_view.blockstate_tab.multipart {
-                    if self.advanced_view.blockstate_tab.variants.is_empty() {
+                    if self.advanced_view.blockstate_tab.variant_view.variants.is_empty() {
                         match create_simple_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id) {
                             Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
                             Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
                         }
                     } else {
-                        match create_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id, &self.advanced_view.blockstate_tab.variants) {
+                        match create_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id, &self.advanced_view.blockstate_tab.variant_view.variants) {
                             Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
                             Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
                         }
                     }
                 } else {
-
+                    // TODO: serialize multipart blockstates
                 }
             },
-            SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.show_modal = true,
-            SobekMsg::CloseAddVariant => self.advanced_view.blockstate_tab.show_modal = false,
+            SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.variant_view.show_modal = true,
+            SobekMsg::MPOpenAddVariant => self.advanced_view.blockstate_tab.multipart_view.show_modal = true,
+            SobekMsg::CloseAddVariant => self.advanced_view.blockstate_tab.variant_view.show_modal = false,
             SobekMsg::SubmitAddVariant => {
-                if self.advanced_view.blockstate_tab.model_id != "" {
-                    self.advanced_view.blockstate_tab.variants.push((self.advanced_view.blockstate_tab.variant_qual.clone(), self.advanced_view.blockstate_tab.model_id.clone(), self.advanced_view.blockstate_tab.x_rot, self.advanced_view.blockstate_tab.y_rot, self.advanced_view.blockstate_tab.weight, self.advanced_view.blockstate_tab.uv_lock))
+                if self.advanced_view.blockstate_tab.variant_view.model_id != "" {
+                    self.advanced_view.blockstate_tab.variant_view.variants.push((self.advanced_view.blockstate_tab.variant_view.variant_qual.clone(), self.advanced_view.blockstate_tab.variant_view.model_id.clone(), self.advanced_view.blockstate_tab.variant_view.x_rot, self.advanced_view.blockstate_tab.variant_view.y_rot, self.advanced_view.blockstate_tab.variant_view.weight, self.advanced_view.blockstate_tab.variant_view.uv_lock))
                 }
 
-                self.advanced_view.blockstate_tab.show_modal = false
+                self.advanced_view.blockstate_tab.variant_view.show_modal = false
             }
-            SobekMsg::VariantQual(s) => self.advanced_view.blockstate_tab.variant_qual = s,
-            SobekMsg::BlockstateModel(s) => self.advanced_view.blockstate_tab.model_id = s,
-            SobekMsg::BlockstateXrotChange(i) => self.advanced_view.blockstate_tab.x_rot = i,
-            SobekMsg::BlockstateYrotChange(i) => self.advanced_view.blockstate_tab.y_rot = i,
-            SobekMsg::BlockstateWeightChange(i) => self.advanced_view.blockstate_tab.weight = i,
-            SobekMsg::BlockstateUV(b) => self.advanced_view.blockstate_tab.uv_lock = b,
-            SobekMsg::RemoveVariant(z) => drop(self.advanced_view.blockstate_tab.variants.remove(z)),
-            SobekMsg::VarChange(b) => self.advanced_view.blockstate_tab.var = b,
-            SobekMsg::ClearVariants => self.advanced_view.blockstate_tab.variants.clear()
+            SobekMsg::VariantQual(s) => self.advanced_view.blockstate_tab.variant_view.variant_qual = s,
+            SobekMsg::MPVariantQual(s) => self.advanced_view.blockstate_tab.multipart_view.variant_qual = s,
+            SobekMsg::BlockstateModel(s) => self.advanced_view.blockstate_tab.variant_view.model_id = s,
+            SobekMsg::MPBlockstateModel(s) => self.advanced_view.blockstate_tab.multipart_view.model_id = s,
+            SobekMsg::BlockstateXrotChange(i) => self.advanced_view.blockstate_tab.variant_view.x_rot = i,
+            SobekMsg::MPBlockstateXrotChange(i) => self.advanced_view.blockstate_tab.multipart_view.x_rot = i,
+            SobekMsg::BlockstateYrotChange(i) => self.advanced_view.blockstate_tab.variant_view.y_rot = i,
+            SobekMsg::MPBlockstateYrotChange(i) => self.advanced_view.blockstate_tab.multipart_view.y_rot = i,
+            SobekMsg::BlockstateWeightChange(i) => self.advanced_view.blockstate_tab.variant_view.weight = i,
+            SobekMsg::MPBlockstateWeightChange(i) => self.advanced_view.blockstate_tab.multipart_view.weight = i,
+            SobekMsg::BlockstateUV(b) => self.advanced_view.blockstate_tab.variant_view.uv_lock = b,
+            SobekMsg::MPBlockstateUV(b) => self.advanced_view.blockstate_tab.multipart_view.uv_lock = b,
+            SobekMsg::RemoveVariant(z) => drop(self.advanced_view.blockstate_tab.variant_view.variants.remove(z)),
+            SobekMsg::ClearVariants => self.advanced_view.blockstate_tab.variant_view.variants.clear(),
+            SobekMsg::MPClearVariants => self.advanced_view.blockstate_tab.multipart_view.variants.clear(),
+            SobekMsg::OpenAddPart => self.advanced_view.blockstate_tab.multipart_view.show_part_modal = true,
+            SobekMsg::CloseAddPart => self.advanced_view.blockstate_tab.multipart_view.show_part_modal = false,
+            SobekMsg::SubmitAddPart => {
+                if !self.advanced_view.blockstate_tab.multipart_view.variants.is_empty() {
+                    self.advanced_view.blockstate_tab.multipart_view.parts.push((self.advanced_view.blockstate_tab.multipart_view.when.clone(), self.advanced_view.blockstate_tab.multipart_view.variants.clone()));
+                }
+
+                self.advanced_view.blockstate_tab.multipart_view.when.clear();
+                self.advanced_view.blockstate_tab.multipart_view.variants.clear();
+
+                self.advanced_view.blockstate_tab.multipart_view.show_part_modal = false
+            },
+            SobekMsg::MPCloseAddVariant => {
+                self.advanced_view.blockstate_tab.multipart_view.show_when_modal = false;
+                self.advanced_view.blockstate_tab.multipart_view.show_modal = false
+            },
+            SobekMsg::MPSubmitAddVariant => {
+                if self.advanced_view.blockstate_tab.multipart_view.model_id != "" {
+                    self.advanced_view.blockstate_tab.multipart_view.variants.push((self.advanced_view.blockstate_tab.multipart_view.variant_qual.clone(), self.advanced_view.blockstate_tab.multipart_view.model_id.clone(), self.advanced_view.blockstate_tab.multipart_view.x_rot, self.advanced_view.blockstate_tab.multipart_view.y_rot, self.advanced_view.blockstate_tab.multipart_view.weight, self.advanced_view.blockstate_tab.multipart_view.uv_lock))
+                }
+
+                
+                self.advanced_view.blockstate_tab.multipart_view.show_modal = false
+            },
+            SobekMsg::AddCondition => self.advanced_view.blockstate_tab.multipart_view.show_when_modal = true,
+            SobekMsg::ClearConditions => self.advanced_view.blockstate_tab.multipart_view.when.clear(),
+            SobekMsg::MPWhenName(s) => self.advanced_view.blockstate_tab.multipart_view.name = s,
+            SobekMsg::ConditionChange(b) => self.advanced_view.blockstate_tab.multipart_view.ifw = b,
+            SobekMsg::MPSubmitAddCondition => {
+                if self.advanced_view.blockstate_tab.multipart_view.name != "" {
+                    self.advanced_view.blockstate_tab.multipart_view.when.push((self.advanced_view.blockstate_tab.multipart_view.name.clone(), self.advanced_view.blockstate_tab.multipart_view.ifw));
+                }
+
+                self.advanced_view.blockstate_tab.multipart_view.name = String::from("");
+                self.advanced_view.blockstate_tab.multipart_view.ifw = false;
+                self.advanced_view.blockstate_tab.multipart_view.show_when_modal = false
+            }
         }
     }
 
