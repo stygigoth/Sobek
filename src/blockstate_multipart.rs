@@ -41,16 +41,18 @@ impl BlockstateMultipart {
         let pick_type = Checkbox::new(multipart, "Multipart?", SobekMsg::BlockstateTypeChange);
         let mut col: Column<'_, SobekMsg> = Column::new().padding(10).spacing(10);
         let add_part = Button::new("Add part").on_press(SobekMsg::OpenAddPart);
-        col = col.push(Row::new().push(pick_type).push(add_part).spacing(20).align_items(Alignment::Center));
+        let clear_parts = Button::new("Clear parts").on_press(SobekMsg::ClearParts);
+        col = col.push(Row::new().push(pick_type).push(add_part).push(clear_parts).spacing(20).align_items(Alignment::Center));
         
         for x in self.parts.iter() {
             col = col.push(Row::new().push(Text::new("________________________________").horizontal_alignment(Horizontal::Center)));
-
+            let mut i = 1;
             for y in x.1.iter() {
                 col = col.push(Row::new().push(Text::new(format!("Model: {}", y.0)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Weight: {}", y.3)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("UV Lock: {}", y.4)).horizontal_alignment(Horizontal::Center)).spacing(20));
-                col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", y.1)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Y Rotation: {}", y.2)).horizontal_alignment(Horizontal::Center)).spacing(20));
+                col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", y.1)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Y Rotation: {}", y.2)).horizontal_alignment(Horizontal::Center)).push(Button::new("Remove").on_press(SobekMsg::RemovePart(i))).spacing(20));
+                i += 1;
             }
-            col = col.push(Row::new().push(Text::new("-----------------------------------").horizontal_alignment(Horizontal::Center)));
+            col = col.push(Row::new().push(Text::new("------------------------------------").horizontal_alignment(Horizontal::Center)));
             for y in x.0.iter() {
                 col = col.push(Row::new().push(Text::new(format!("{}: {}", y.0, y.1))));
             }

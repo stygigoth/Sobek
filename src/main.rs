@@ -98,6 +98,16 @@ fn create_blockstate(d: &str, m: &str, s: &str, v: &Vec<(String, String, i32, i3
     file.write_all(to_write.as_bytes())?;
     Ok(())
 }
+fn create_mp_blockstate(d: &str, m: &str, s: &str, v: &Vec<(Vec<(String, bool)>, Vec<(String, i32, i32, i64, bool)>)>) -> Result<(), Error> {
+    let m_id = format!("assets/{}/blockstates/", m);
+    let path = format!("{}/{}", d, m_id);
+
+    let mut file = File::create(format!("{}{}.json", path, s))?;
+    let to_write = create_mp_blockstate_str(v);
+
+    file.write_all(to_write.as_bytes())?;
+    Ok(())
+}
 
 fn create_blockstate_str(v: &Vec<(String, String, i32, i32, i64, bool)>) -> String {
     let mut v0: Vec<String> = Vec::new();
@@ -142,7 +152,50 @@ fn create_blockstate_str(v: &Vec<(String, String, i32, i32, i64, bool)>) -> Stri
             to_ret += "\t\t]\n\t}\n}";
         }
     }
-    format!("{}", to_ret)
+    to_ret
+}
+fn create_mp_blockstate_str(v: &Vec<(Vec<(String, bool)>, Vec<(String, i32, i32, i64, bool)>)>) -> String {
+    let mut to_ret: String = String::from("{\n\t\"multipart\": [\n\t\t");
+    let mut i: usize = 1;
+    for x in v.iter() {
+        to_ret += &assemble_part(x);
+        if i != v.len() { to_ret += ",";}
+        i += 1;
+    }
+    to_ret += "\n\t]\n}";
+
+    to_ret
+}
+fn assemble_part(x: &(Vec<(String, bool)>, Vec<(String, i32, i32, i64, bool)>)) -> String {
+    let mut to_ret: String = String::from("{\n\t\t\t");
+    if x.0.len() >= 1 {
+        to_ret += "\"when\": {";
+        let mut i: usize = 1;
+        for y in x.0.iter() {
+            to_ret += &format!("\n\t\t\t\t\"{}\": {}", y.0, y.1);
+            if x.0.len() != i { to_ret += ","; }
+            i += 1;
+        }
+        to_ret += "\n\t\t\t},\n\t\t\t";
+    }
+
+    if x.1.len() == 1 {
+        let temp = x.1.get(0).unwrap();
+        to_ret += &format!("\"apply\": {{\n\t\t\t\t\"model\": \"{}\",\n\t\t\t\t\"x\": {},\n\t\t\t\t\"y\": {},\n\t\t\t\t\"uvlock\": {}\n\t\t\t}}\n", temp.0, temp.1, temp.2, temp.4);
+    } else {
+        let mut i: usize = 1;
+        to_ret += "\"apply\": [\n\t\t\t\t";
+        for y in x.1.iter() {
+            to_ret += &format!("{{\n\t\t\t\t\t\"model\": \"{}\",\n\t\t\t\t\t\"x\": {},\n\t\t\t\t\t\"y\": {},\n\t\t\t\t\t\"weight\": {},\n\t\t\t\t\t\"uvlock\": {}\n\t\t\t\t}}", y.0, y.1, y.2, y.3, y.4);
+            if i != x.1.len() { to_ret += ",\n\t\t\t\t"; } else { to_ret += "\n"; }
+            i += 1;
+        }
+        to_ret += "\t\t\t]\n";
+    }
+
+    to_ret += "\t\t}";
+
+    to_ret
 }
 
 fn create_simple_block_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
@@ -238,7 +291,9 @@ pub enum SobekMsg {
     ClearConditions,
     MPWhenName(String),
     ConditionChange(bool),
-    MPSubmitAddCondition
+    MPSubmitAddCondition,
+    ClearParts,
+    RemovePart(usize)
 }
 
 impl Sandbox for Sobek {
@@ -319,7 +374,17 @@ impl Sandbox for Sobek {
                         }
                     }
                 } else {
-                    // TODO: serialize multipart blockstates
+                    if self.advanced_view.blockstate_tab.multipart_view.parts.is_empty() {
+                        match create_simple_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id) {
+                            Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
+                            Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
+                        }
+                    } else {
+                        match create_mp_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id, &self.advanced_view.blockstate_tab.multipart_view.parts) {
+                            Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
+                            Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
+                        }
+                    }
                 }
             },
             SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.variant_view.show_modal = true,
@@ -344,6 +409,7 @@ impl Sandbox for Sobek {
             SobekMsg::BlockstateUV(b) => self.advanced_view.blockstate_tab.variant_view.uv_lock = b,
             SobekMsg::MPBlockstateUV(b) => self.advanced_view.blockstate_tab.multipart_view.uv_lock = b,
             SobekMsg::RemoveVariant(z) => drop(self.advanced_view.blockstate_tab.variant_view.variants.remove(z)),
+            SobekMsg::RemovePart(z) => drop(self.advanced_view.blockstate_tab.multipart_view.parts.remove(z)),
             SobekMsg::ClearVariants => self.advanced_view.blockstate_tab.variant_view.variants.clear(),
             SobekMsg::MPClearVariants => self.advanced_view.blockstate_tab.multipart_view.variants.clear(),
             SobekMsg::OpenAddPart => self.advanced_view.blockstate_tab.multipart_view.show_part_modal = true,
@@ -382,7 +448,8 @@ impl Sandbox for Sobek {
                 self.advanced_view.blockstate_tab.multipart_view.name = String::from("");
                 self.advanced_view.blockstate_tab.multipart_view.ifw = false;
                 self.advanced_view.blockstate_tab.multipart_view.show_when_modal = false
-            }
+            },
+            SobekMsg::ClearParts => self.advanced_view.blockstate_tab.multipart_view.parts.clear()
         }
     }
 
