@@ -43,20 +43,19 @@ impl BlockstateMultipart {
         let add_part = Button::new("Add part").on_press(SobekMsg::OpenAddPart);
         let clear_parts = Button::new("Clear parts").on_press(SobekMsg::ClearParts);
         col = col.push(Row::new().push(pick_type).push(add_part).push(clear_parts).spacing(20).align_items(Alignment::Center));
-        
+
+        let mut i = 0;
         for x in self.parts.iter() {
-            col = col.push(Row::new().push(Text::new("________________________________").horizontal_alignment(Horizontal::Center)));
-            let mut is_first_iter: bool = true;
-            let mut i = 0;
+            col = col.push(Row::new().push(Text::new("________________________________").horizontal_alignment(Horizontal::Center)).push(Button::new("Remove").on_press(SobekMsg::RemovePart(i))));
             for y in x.1.iter() {
                 col = col.push(Row::new().push(Text::new(format!("Model: {}", y.0)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Weight: {}", y.3)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("UV Lock: {}", y.4)).horizontal_alignment(Horizontal::Center)).spacing(20));
-                col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", y.1)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Y Rotation: {}", y.2)).horizontal_alignment(Horizontal::Center)).push(Button::new("Remove").on_press(SobekMsg::RemovePart(i))).spacing(20));
-                if !(is_first_iter) {i += 1;} else {is_first_iter = false;}
+                col = col.push(Row::new().push(Text::new(format!("X Rotation: {}", y.1)).horizontal_alignment(Horizontal::Center)).push(Text::new(format!("Y Rotation: {}", y.2)).horizontal_alignment(Horizontal::Center)).spacing(20));
             }
             col = col.push(Row::new().push(Text::new("------------------------------------").horizontal_alignment(Horizontal::Center)));
             for y in x.0.iter() {
                 col = col.push(Row::new().push(Text::new(format!("{}: {}", y.0, y.1))));
             }
+            i += 1;
         }
 
         let scroll = Scrollable::new(col);
