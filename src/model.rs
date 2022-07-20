@@ -6,6 +6,7 @@ pub struct ModelTab {
     pub split: u16,
     pub blocks: Vec<Block>,
     pub name: String,
+    pub model_name: String,
     pub block: usize,
     default_block: Block
 }
@@ -16,6 +17,7 @@ impl ModelTab {
             split: 256,
             blocks: Vec::new(),
             name: String::from(""),
+            model_name: String::from(""),
             block: 0,
             default_block: Block::new(String::from(""))
         }
@@ -49,8 +51,10 @@ impl ModelTab {
         let new = Container::new(new_row).center_x().center_y().width(Length::Fill);
         let import = Button::new("Import Model from Blockbench");
         let con = Container::new(import).center_x().center_y().width(Length::Fill);
-        let create = Container::new(Button::new("Create Model")).center_x().center_y().width(Length::Fill);
-        let row = Row::new().push(new).push(con).push(create).align_items(Alignment::Center);
+        let create = Button::new("Create Model");
+        let create_name = TextInput::new("Model Name", &self.model_name, SobekMsg::SetModelName);
+        let create_row = Container::new(Row::new().push(create).align_items(Alignment::Center)).center_x().center_y().width(Length::Fill);
+        let row = Row::new().push(new).push(con).push(create_row).align_items(Alignment::Center);
 
         let col = Column::new().push(row).push(spl).padding(10).spacing(10);
 

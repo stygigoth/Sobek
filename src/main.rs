@@ -322,7 +322,8 @@ pub enum SobekMsg {
     ChangeModelName(String),
     SetModelBlock(usize),
     DeleteModelBlock(usize),
-    AddModelBlock(String)
+    AddModelBlock(String),
+    SetModelName(String)
 }
 
 impl Sandbox for Sobek {
@@ -483,7 +484,8 @@ impl Sandbox for Sobek {
                 }
                 drop(self.advanced_view.model_tab.blocks.remove(z))
             },
-            SobekMsg::AddModelBlock(n) => self.advanced_view.model_tab.blocks.push(Block::new(n))
+            SobekMsg::AddModelBlock(n) => if self.advanced_view.model_tab.name != "" {self.advanced_view.model_tab.blocks.push(Block::new(n))},
+            SobekMsg::SetModelName(n) => self.advanced_view.model_tab.model_name = n
         }
     }
 
