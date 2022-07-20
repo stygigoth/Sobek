@@ -360,7 +360,7 @@ impl Sandbox for Sobek {
                 self.advanced_view.blockstate_tab.view = if type_of { BlockstateViews::Multipart } else { BlockstateViews::Variant };
             },
             SobekMsg::Create => {
-                if self.advanced_view.create_tab.block_id == "" { return; }
+                if !Regex::new(&ID_REGEX).unwrap().is_match(&self.advanced_view.create_tab.block_id) { return; }
 
                 if self.advanced_view.blockstate_tab.variant_view.variants.is_empty() || self.advanced_view.blockstate_tab.multipart_view.parts.is_empty() {
                     match create_simple_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id) {
