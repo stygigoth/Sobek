@@ -6,7 +6,7 @@ use std::io::{prelude::*, Error};
 use regex::Regex;
 use dirs;
 use native_dialog::FileDialog;
-use crate::{main_page::MainPage, block_select::BlockSelectPage, simple_block::SimpleBlockPage, advanced_block::AdvancedBlockPage, blockstate::BlockstateViews};
+use crate::{main_page::MainPage, block_select::BlockSelectPage, simple_block::SimpleBlockPage, advanced_block::AdvancedBlockPage, blockstate::BlockstateViews, block::Block};
 
 mod main_page;
 mod block_select;
@@ -18,6 +18,7 @@ mod loot_table;
 mod create;
 mod blockstate_variant;
 mod blockstate_multipart;
+mod block;
 
 static ID_REGEX: &str = r"^[0-9a-z_.\-]+$";
 
@@ -64,7 +65,7 @@ fn create_simple_block(d: &str, m: &str, s: &str, bi: &bool, ds: &bool) {
     }
     
     if *bi {
-        match create_simple_item_model(d, m, s) {
+        match create_item_model(d, m, s) {
             Err(y) => println!("couldn't create item model: {}", y),
             Ok(_) => println!("created item model for: {}:{}", m, s)
         }
@@ -83,7 +84,7 @@ fn create_simple_blockstate(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
-    let to_write = format!("{{\n\t\"variants\": {{\n\t\t\"\": {{\n\t\t\t\"model\": \"{}:block/{}\"\n\t\t}}\n\t}}\n}}", m, s);
+    let to_write = format!("{{\n\t\"credit\": \"Made with Sobek\",\n\t\"variants\": {{\n\t\t\"\": {{\n\t\t\t\"model\": \"{}:block/{}\"\n\t\t}}\n\t}}\n}}", m, s);
 
     file.write_all(to_write.as_bytes())?;
     Ok(())
@@ -130,7 +131,7 @@ fn create_blockstate_str(v: &Vec<(String, String, i32, i32, i64, bool)>) -> Stri
         v1.push((x.clone(), (temp)));
     }
 
-    let mut to_ret: String = String::from("{\n\t\"variants\": {\n\t\t");
+    let mut to_ret: String = String::from("{\n\t\"credit\": \"Made with Sobek\",\n\t\"variants\": {\n\t\t");
     for x in v1.iter() {
         to_ret += &format!("\"{}\": ", x.0.clone());
         if x.1.len() == 1 {
@@ -155,7 +156,7 @@ fn create_blockstate_str(v: &Vec<(String, String, i32, i32, i64, bool)>) -> Stri
     to_ret
 }
 fn create_mp_blockstate_str(v: &Vec<(Vec<(String, bool)>, Vec<(String, i32, i32, i64, bool)>)>) -> String {
-    let mut to_ret: String = String::from("{\n\t\"multipart\": [\n\t\t");
+    let mut to_ret: String = String::from("{\n\t\"credit\": \"Made with Sobek\",\n\t\"multipart\": [\n\t\t");
     let mut i: usize = 1;
     for x in v.iter() {
         to_ret += &assemble_part(x);
@@ -203,18 +204,42 @@ fn create_simple_block_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
-    let to_write = format!("{{\n\t\"parent\": \"minecraft:block/cube_all\",\n\t\"textures\": {{\n\t\t\"all\": \"{}:block/{}\"\n\t}}\n}}", m, s);
+    let to_write = format!("{{\n\t\"credit\": \"Made with Sobek\",\n\t\"parent\": \"minecraft:block/cube_all\",\n\t\"textures\": {{\n\t\t\"all\": \"{}:block/{}\"\n\t}}\n}}", m, s);
+
+    file.write_all(to_write.as_bytes())?;
+    Ok(())
+}
+fn create_block_model(d: &str, m: &str, s: &str, block_vector: &Vec<Block>) -> Result<(), Error> {
+    let m_id = format!("assets/{}/models/block/", m);
+    let path = format!("{}/{}", d, m_id);
+
+    let mut file = File::create(format!("{}{}.json", path, s))?;
+
+    let to_write = create_block_model_str(block_vector);
 
     file.write_all(to_write.as_bytes())?;
     Ok(())
 }
 
-fn create_simple_item_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
+fn create_block_model_str(v: &Vec<Block>) -> String {
+    let mut to_ret: String = String::from("{\n\t\"credit\": \"Made with Sobek\",\n\t\"elements\": [\n\t\t");
+
+    for x in v.iter() {
+        to_ret += &assemble_element(x);
+    }
+
+    to_ret
+}
+fn assemble_element(b: &Block) -> String {
+    String::from("")
+}
+
+fn create_item_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let m_id = format!("assets/{}/models/item/", m);
     let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
-    let to_write = format!("{{\n\t\"parent\": \"{}:block/{}\"\n}}", m, s);
+    let to_write = format!("{{\n\t\"credit\": \"Made with Sobek\",\n\t\"parent\": \"{}:block/{}\"\n}}", m, s);
 
     file.write_all(to_write.as_bytes())?;
     Ok(())
@@ -225,7 +250,7 @@ fn create_simple_loot_table(d: &str, m: &str, s: &str) -> Result<(), Error> {
     let path = format!("{}/{}", d, m_id);
 
     let mut file = File::create(format!("{}{}.json", path, s))?;
-    let to_write = format!("{{\n\t\"type\": \"minecraft:block\",\n\t\"pools\": [\n\t\t{{\n\t\t\t\"bonus_rolls\": 0.0,\n\t\t\t\"conditions\": [\n\t\t\t\t{{\n\t\t\t\t\t\"condition\": \"minecraft:survives_explosion\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"entries\": [\n\t\t\t\t{{\n\t\t\t\t\t\"type\": \"minecraft:item\",\n\t\t\t\t\t\"name\": \"{}:{}\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"rolls\": 1.0\n\t\t}}\n\t]\n}}", m, s);
+    let to_write = format!("{{\n\t\"credit\": \"Made with Sobek\",\n\t\"type\": \"minecraft:block\",\n\t\"pools\": [\n\t\t{{\n\t\t\t\"bonus_rolls\": 0.0,\n\t\t\t\"conditions\": [\n\t\t\t\t{{\n\t\t\t\t\t\"condition\": \"minecraft:survives_explosion\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"entries\": [\n\t\t\t\t{{\n\t\t\t\t\t\"type\": \"minecraft:item\",\n\t\t\t\t\t\"name\": \"{}:{}\"\n\t\t\t\t}}\n\t\t\t],\n\t\t\t\"rolls\": 1.0\n\t\t}}\n\t]\n}}", m, s);
 
     file.write_all(to_write.as_bytes())?;
     Ok(())
@@ -293,7 +318,11 @@ pub enum SobekMsg {
     ConditionChange(bool),
     MPSubmitAddCondition,
     ClearParts,
-    RemovePart(usize)
+    RemovePart(usize),
+    ChangeModelName(String),
+    SetModelBlock(usize),
+    DeleteModelBlock(usize),
+    AddModelBlock(String)
 }
 
 impl Sandbox for Sobek {
@@ -380,6 +409,8 @@ impl Sandbox for Sobek {
                         Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
                     }
                 }
+
+                self.advanced_view = AdvancedBlockPage::new()
             },
             SobekMsg::OpenAddVariant => self.advanced_view.blockstate_tab.variant_view.show_modal = true,
             SobekMsg::MPOpenAddVariant => self.advanced_view.blockstate_tab.multipart_view.show_modal = true,
@@ -443,7 +474,16 @@ impl Sandbox for Sobek {
                 self.advanced_view.blockstate_tab.multipart_view.ifw = false;
                 self.advanced_view.blockstate_tab.multipart_view.show_when_modal = false
             },
-            SobekMsg::ClearParts => self.advanced_view.blockstate_tab.multipart_view.parts.clear()
+            SobekMsg::ClearParts => self.advanced_view.blockstate_tab.multipart_view.parts.clear(),
+            SobekMsg::ChangeModelName(s) => self.advanced_view.model_tab.name = s,
+            SobekMsg::SetModelBlock(s) => self.advanced_view.model_tab.block = s,
+            SobekMsg::DeleteModelBlock(z) => {
+                if self.advanced_view.model_tab.block >= z && z != 0 {
+                    self.advanced_view.model_tab.block -= 1
+                }
+                drop(self.advanced_view.model_tab.blocks.remove(z))
+            },
+            SobekMsg::AddModelBlock(n) => self.advanced_view.model_tab.blocks.push(Block::new(n))
         }
     }
 

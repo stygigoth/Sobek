@@ -19,7 +19,7 @@ impl CreateTab {
 
     pub fn view(&self) -> Element<SobekMsg> {
         let text = TextInput::new("Block ID", &self.block_id, SobekMsg::ChangeAdvBID).padding(10);
-        let create = Button::new("Create").on_press(SobekMsg::Create);
+        let create = Button::new("Create Blockstate & Loot Table").on_press(SobekMsg::Create);
 
         Container::new(Column::new().spacing(20).push(text).push(create))
         .center_x().center_y()
