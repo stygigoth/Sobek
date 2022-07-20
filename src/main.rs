@@ -362,7 +362,7 @@ impl Sandbox for Sobek {
             SobekMsg::Create => {
                 if !Regex::new(&ID_REGEX).unwrap().is_match(&self.advanced_view.create_tab.block_id) { return; }
 
-                if self.advanced_view.blockstate_tab.variant_view.variants.is_empty() || self.advanced_view.blockstate_tab.multipart_view.parts.is_empty() {
+                if self.advanced_view.blockstate_tab.variant_view.variants.is_empty() && self.advanced_view.blockstate_tab.multipart_view.parts.is_empty() {
                     match create_simple_blockstate(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.create_tab.block_id) {
                         Err(y) => println!("couldn't create blockstate for {}:{}: {}", self.main_view.mod_id, self.advanced_view.create_tab.block_id, y),
                         Ok(_) => println!("created blockstate for {}:{}", self.main_view.mod_id, self.advanced_view.create_tab.block_id)
