@@ -29,7 +29,7 @@ impl Block {
     }
 
     pub fn get_pivot(&self) -> (u32, u32, u32) {
-        self.get_pivot().clone()
+        self.pivot.clone()
     }
 
     pub fn get_rotation(&self) -> (char, i16) {
