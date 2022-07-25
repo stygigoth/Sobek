@@ -38,11 +38,15 @@ impl ModelTab {
         let first = Container::new(scrollable)
         .center_x().center_y()
         .width(Length::Fill).height(Length::Fill);
-        let block = self.blocks.get(self.block);
-        let second = if block.is_none() {Container::new(Column::new())} else {Container::new(block.unwrap_or(&self.default_block).view())};
-        let second = second
+        let block = self.blocks.get(self.block).unwrap_or(&self.default_block);
+
+        let col1 = Column::new()
+        .push(Row::new().push(Text::new(block.name.clone())))
+        .spacing(10).padding(20);
+
+        let second = Container::new(col1)
         .center_x().center_y()
-        .width(Length::Fill).height(Length::Fill);
+        .height(Length::Fill).width(Length::Fill);
         let spl = Split::new(first, second, Option::from(self.split), iced_aw::pure::split::Axis::Vertical, SobekMsg::ModelSplitSize);
 
         let new_btn = Button::new("+").on_press(SobekMsg::AddModelBlock(self.name.clone()));
@@ -51,9 +55,9 @@ impl ModelTab {
         let new = Container::new(new_row).center_x().center_y().width(Length::Fill);
         let import = Button::new("Import Model from Blockbench");
         let con = Container::new(import).center_x().center_y().width(Length::Fill);
-        let create = Button::new("Create Model");
-        let create_name = TextInput::new("Model Name", &self.model_name, SobekMsg::SetModelName);
-        let create_row = Container::new(Row::new().push(create).align_items(Alignment::Center)).center_x().center_y().width(Length::Fill);
+        let create = Button::new("Create Model").on_press(SobekMsg::CreateModel);
+        let create_name = TextInput::new("Model Name", &self.model_name, SobekMsg::SetModelName).padding(10);
+        let create_row = Container::new(Row::new().push(create).push(create_name).align_items(Alignment::Center).spacing(5)).center_x().center_y().width(Length::Fill);
         let row = Row::new().push(new).push(con).push(create_row).align_items(Alignment::Center);
 
         let col = Column::new().push(row).push(spl).padding(10).spacing(10);

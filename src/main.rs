@@ -222,16 +222,35 @@ fn create_block_model(d: &str, m: &str, s: &str, block_vector: &Vec<Block>) -> R
 }
 
 fn create_block_model_str(v: &Vec<Block>) -> String {
-    let mut to_ret: String = String::from("{\n\t\"credit\": \"Made with Sobek\",\n\t\"elements\": [\n\t\t");
+    let mut to_ret: String = String::from("{\n\t\"credit\": \"Made with Sobek\",\n\t\"elements\": [\n");
 
+    let mut i = 0;
     for x in v.iter() {
         to_ret += &assemble_element(x);
+        if i < v.len() { to_ret += ","; }
+        to_ret += "\n";
+        i += 1;
     }
 
     to_ret
 }
 fn assemble_element(b: &Block) -> String {
-    String::from("")
+    let mut to_ret: String = String::from("\t\t{");
+
+    to_ret += &format!("\n\t\t\t\"from\": [{}, {}, {}],", b.get_offset().0, b.get_offset().1, b.get_offset().2);
+    to_ret += &format!("\n\t\t\t\"to\": [{}, {}, {}],", f64::from(b.get_offset().0) + b.get_size().0, f64::from(b.get_offset().1) + b.get_size().1, f64::from(b.get_offset().2) + b.get_size().2);
+    if b.get_rotation().1 != 0 { to_ret += &format!("\n\t\t\t\"rotation\": {{\"angle\": {}, \"axis\": \"{}\", \"origin\": [{}, {}, {}]}},", b.get_rotation().1, b.get_rotation().0, b.get_pivot().0, b.get_pivot().1, b.get_pivot().2); }
+    to_ret += "\n\t\t\t\"color\": 0,\n\t\t\t\"faces\": {";
+    to_ret += &format!("\n\t\t\t\t\"north\": {{\"uv\": [0, 0, {}, {}], \"texture\": \"#missing\"}},", b.get_size().0, b.get_size().1);
+    to_ret += &format!("\n\t\t\t\t\"east\": {{\"uv\": [0, 0, {}, {}], \"texture\": \"#missing\"}},", b.get_size().1, b.get_size().2);
+    to_ret += &format!("\n\t\t\t\t\"south\": {{\"uv\": [0, 0, {}, {}], \"texture\": \"#missing\"}},", b.get_size().0, b.get_size().1);
+    to_ret += &format!("\n\t\t\t\t\"west\": {{\"uv\": [0, 0, {}, {}], \"texture\": \"#missing\"}},", b.get_size().1, b.get_size().2);
+    to_ret += &format!("\n\t\t\t\t\"up\": {{\"uv\": [0, 0, {}, {}], \"texture\": \"#missing\"}},", b.get_size().0, b.get_size().2);
+    to_ret += &format!("\n\t\t\t\t\"down\": {{\"uv\": [0, 0, {}, {}], \"texture\": \"#missing\"}}", b.get_size().0, b.get_size().2);
+    to_ret += "\n\t\t\t}";
+
+
+    to_ret
 }
 
 fn create_item_model(d: &str, m: &str, s: &str) -> Result<(), Error> {
@@ -323,7 +342,8 @@ pub enum SobekMsg {
     SetModelBlock(usize),
     DeleteModelBlock(usize),
     AddModelBlock(String),
-    SetModelName(String)
+    SetModelName(String),
+    CreateModel
 }
 
 impl Sandbox for Sobek {
@@ -484,8 +504,21 @@ impl Sandbox for Sobek {
                 }
                 drop(self.advanced_view.model_tab.blocks.remove(z))
             },
-            SobekMsg::AddModelBlock(n) => if self.advanced_view.model_tab.name != "" {self.advanced_view.model_tab.blocks.push(Block::new(n))},
-            SobekMsg::SetModelName(n) => self.advanced_view.model_tab.model_name = n
+            SobekMsg::AddModelBlock(n) => {
+                if self.advanced_view.model_tab.name != "" {
+                    self.advanced_view.model_tab.block = self.advanced_view.model_tab.blocks.len();
+                    self.advanced_view.model_tab.blocks.push(Block::new(n))
+                }
+            },
+            SobekMsg::SetModelName(n) => self.advanced_view.model_tab.model_name = n,
+            SobekMsg::CreateModel => {
+                if self.advanced_view.model_tab.model_name == "" || self.advanced_view.model_tab.blocks.is_empty() { return; }
+
+                match create_block_model(&self.working_directory, &self.main_view.mod_id, &self.advanced_view.model_tab.model_name, &self.advanced_view.model_tab.blocks) {
+                    Err(y) => println!("couldn't create block model {}: {}", self.advanced_view.model_tab.model_name, y),
+                    Ok(_) => println!("created block model {}", self.advanced_view.model_tab.model_name)
+                }
+            }
         }
     }
 
